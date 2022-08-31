@@ -1,0 +1,222 @@
+---
+title: "SA2_Group_Assignment_Group-02"
+date: "06/12/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Authors: 
+         
+         "Shephali Bhardwaj_12110010"
+         "Anil Jhamb_12110076"
+         "Ronil Bhan_12110079"
+         "Shreyas Namjoshi_12110103"
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE, warning=FALSE}
+#installing required libraries, setting up working directory and reading data file
+library("readxl")
+library("ggplot2")
+setwd("D:\\ISBAMPBA\\Term2\\SA2\\Assignment")
+walmart<-read_excel('walmart_data.xlsx')
+```
+Assumptions:
+alpha = 0.05(In All questions alpha value remains same unless specified in the question)
+
+
+Question 1: a. create a scatterplot of sales and promotion index
+
+```{r pressure,message=FALSE, warning=FALSE}
+attach(walmart)
+qplot(`Promotion Index`,Sales)
+```
+
+Q1: b. create a scatterplot of log(sales) and log(promotion index)
+
+```{r message=FALSE, warning=FALSE}
+walmart$lnSales<-log(Sales)
+walmart$lnProIndex<-log(`Promotion Index`)
+attach(walmart)
+qplot(lnProIndex,lnSales)
+```
+
+Q1: c. comment the plots and decide which variable are a better fit for linear regression and why? 
+
+Explanation: When we look at the scatter plot of Sales vs Promotion Index, the relationship looks linear with few points spread out as the Sales and Promotion Index
+increases. Since the data range is high, few values can have huge impact than the other points.
+When we transform the Sales and Promotion index, the relationship becomes more linear and the values which were spread out becomes closer to the cloud of points.
+Thus it is better to have transformed variables, which improves the relation and helps in creating a linear model with better Adj R Square Values.
+
+---------------------------------------------------------------------------------------
+
+Q2. Estimate the following regression model: Create the appropriate variables.
+log(sales) = a + b1*log(promotion index) +b2* Walmart
+
+a. What is the interpretation of the coefficient on log(promotion index)?
+
+```{r message=FALSE, warning=FALSE}
+model1<-lm(lnSales~lnProIndex+Walmart)
+summary(model1)
+```
+Explanation: 
+
+Here b1=0.96244(coef. of log(Promotional Index).This implies that for every 1% increase in Promotional Index,the sales increase by 0.96244% assuming all other factors remain unchanged.
+
+---------------------------------------------------------------------------------------
+
+Q2 b. What is the effect of Wal-Mart entry?
+
+For this lets have a model such as log(sales)=a+b1*log(Promotional Index)
+```{r message=FALSE, warning=FALSE}
+model2<-lm(lnSales~lnProIndex)
+summary(model2)
+```
+Explanation: 
+
+We see that Adjusted R Square Value with only log(promotional index) as an independent variable is only 0.1482
+
+Now Consider model as given in Q2, i.e log(sales) = a + b1*log(promotion index) +b2* Walmart
+```{r message=FALSE, warning=FALSE}
+model3<-lm(lnSales~lnProIndex+Walmart)
+summary(model3)
+```
+
+We see below two observations:
+
+1. Interpretation of b1- Sales for the weeks after which Walmart has Opened are "negatively impacted" by 30% as compared to sales for the weeks when walmart is not opened,assuming all other factors remain unchanged.
+
+2. Addition of walmart variable increases the Adjusted R Square value of the model to 0.4019,Which is a significant increase.Thus we can say that Walmart further explains the variation in sales.
+
+
+
+---------------------------------------------------------------------------------------
+
+Q3. Which independent variables are significant in explaining the variation in sales?
+
+Assuming the model eqn to be
+Sales= b0+b1*`Promotion Index`+b2*Walmart+b3*`FeatureAdvertising Index`+b4*Holiday
+
+```{r message=FALSE, warning=FALSE}
+model4<-lm(Sales~`Promotion Index`+Walmart+`FeatureAdvertising Index`+Holiday)
+summary(model4)
+```
+Explanation: 
+
+We see that all the variables `Promotion Index`, Walmart, `FeatureAdvertising Index`,Holiday have a significant impact on the Sales as explained by the p-values of each variable.Here p-value for each variable is less than assumed alpha=0.05
+
+Also we consider the model as is from Q2 i.e log(sales) = a + b1*log(promotion index) +b2* Walmart
+
+```{r message=FALSE, warning=FALSE}
+model3<-lm(lnSales~lnProIndex+Walmart)
+summary(model3)
+```
+Explanation: 
+
+We see that all the variables log(`Promotion Index`) and Walmart have a significant impact on the Sales as explained by the p-values of each variable.Here p-value for each variable is less than assumed alpha=0.05
+
+---------------------------------------------------------------------------------------
+
+Q4. The local store also engages in feature advertising by mailing ads to households. 'Feature Advertising Index' gives the feature advertising activity in a given week. You add the log of this variable to the regression. In addition to this, you also add a 'Holiday Dummy' equal to one if the corresponding week covers a major holiday. Add these two variables to the regression and re-estimate the model
+
+log(sales) = b0 + b1 log(promotion index) + b2 WalMart + b3 log(feature index) + b4 Holiday
+Interpret the two newly estimated coefficients.
+
+```{r message=FALSE, warning=FALSE}
+walmart$lnFindex<-log(`FeatureAdvertising Index`)
+attach(walmart)
+model5<-lm(lnSales~lnProIndex+Walmart+lnFindex+Holiday)
+summary(model5)
+```
+Explanation: 
+
+here b3=0.71829(coef. of log(FeatureAdvertising Index)). This means that increase in 1% of AdvertisingFeature Index will increases the sales by 0.71829% assuming all other factors remain unchanged.
+
+here b4=0.26057(coef. of Holidays). This means that Sales are impacted positively by 26.05% during the weeks with major holidays as compared to when weeks do not have major holidays assuming all other factors remain unchanged.
+
+---------------------------------------------------------------------------------------
+
+Q5. Are the two new coefficients significant?
+
+Assuming model equation to be same as in Q4 i.e log(sales) = b0 + b1 log(promotion index) + b2 WalMart + b3 log(feature index) + b4 Holiday
+
+Explanation: Yes, Both the new coefficients are significant.The P Values are 0.000752 and 0.001082 for log(FeatureAdvertising Index) and Holiday respectively, which is less than assumed alpha=0.05.
+
+---------------------------------------------------------------------------------------
+
+Q6. You add a final variable to the regression: log(promotion Index) X WalMart, i.e., the Wal-Mart dummy multiplied by the log(promotion index) variable. Create this interaction variable. The full regression is now
+
+log(sales) = b0 + b1 log(promotion index) + b2 WalMart + b3 log(feature index) + b4 Holiday + b5(log(promotion Index) x WalMart)
+
+What is the interpretation of b5?
+
+```{r message=FALSE, warning=FALSE}
+walmart$lnProIndex_Wal<-lnProIndex*Walmart
+attach(walmart)
+```
+
+Explanation: b5(coef of log(Promotional Index)*walmart) is additional impact(%increase or %decrease) of Promotional Index on sales in presence of walmart assuming all other factors remain unchanged.
+
+---------------------------------------------------------------------------------------
+
+Q7. Estimate the regression. Paste results here.
+Is the effect of promotions on store sales higher or lower after Wal-Mart enters?
+
+```{r message=FALSE, warning=FALSE}
+model6<-lm(lnSales~lnProIndex+Walmart+lnFindex+Holiday+lnProIndex_Wal)
+summary(model6)
+```
+Explanation: 
+
+The P Value for b5 is 0.054651 which is greater than assumed alpha=0.05 and hence the b5 has non significant contribution to sales.
+But we will still keep b5 in the model and calculate the sales basic the model given in Q6 i.e
+log(sales) = b0 + b1 log(promotion index) + b2 WalMart + b3 log(feature index) + b4 Holiday + b5(log(promotion Index) x WalMart)
+
+Lets Calculate Predicted Value of Sales with Walmart=0 and Walmart=1
+Case 1: walmart=0, promotionalIndex=0.8880742, FeatureAdvertising Index=0.8705762 and holiday=0 
+The equation becomes
+```{r message=FALSE, warning=FALSE}
+y_pred<-13.44880 + (1.46201*log(0.8880742)) + 0 + (0.73694*log(0.8705762)) + 0 + 0
+y_pred
+sales_y_pred<-exp(y_pred)
+sales_y_pred
+```
+
+Predicted Sales comes out to be 526033.2 when walmart =0
+
+
+Case 2: walmart=1, promotionalIndex=0.8880742, FeatureAdvertising Index=0.8705762 and holiday=0 
+The equation becomes
+```{r message=FALSE, warning=FALSE}
+y_pred_wal<-13.44880 + (1.46201*log(0.8880742)) -(0.29863*1) + (0.73694*log(0.8705762)) + 0 - (0.86417*log(0.8880742))
+y_pred_wal
+sales_y_pred_wal<-exp(y_pred_wal)
+sales_y_pred_wal
+
+```
+
+Predicted Sales comes out to be 432382.8 when walmart =1
+
+We clearly see that Sales in presence walmart is lower than sales in absence of walmart assuming all other factors remaining unchanged, This is also evident from the coeff of walmart variable.Since the coef. is negative, we can say that addition of walmart is negatively impacting sales.
+
+
+---------------------------------------------------------------------------------------
+
+Q8. What does the estimate for b5 imply about the possibility of the local store using promotional activity to fight Wal-Mart? What strategy would you recommend to the local store?
+
+
+The P Value for b5 is 0.054651 which is greater than assumed alpha=0.05 and hence the b5 has non significant contribution to sales.
+we will remove the interaction variable and recalculate the regression without interaction variable(same as q4)
+Model Equation becomes: log(sales) = b0 + b1 log(promotion index) + b2 WalMart + b3 log(feature index) + b4 Holiday
+
+```{r message=FALSE, warning=FALSE}
+summary(model5)
+```
+
+As can be seen in the model, log('Promotional Index') and log('Advertisingfeature index') have positive impact on sales,hence we suggest investing further in Promotion and featureadvertising which would lead to higher sales.
+
+
+
